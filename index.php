@@ -1,12 +1,35 @@
 <?php
-// EC2インスタンス情報を取得（タイムアウト設定を追加）
+// EC2インスタンス情報を取得（複数の方法を試す）
+$instance_id = '';
+$private_ip = '';
+$az = 'Unknown';
+
+// 方法1: メタデータサービスから取得（タイムアウト設定を追加）
 $context = stream_context_create(['http' => ['timeout' => 1]]);
 $instance_id = @file_get_contents('http://169.254.169.254/latest/meta-data/instance-id', false, $context);
 $private_ip = @file_get_contents('http://169.254.169.254/latest/meta-data/local-ipv4', false, $context);
+$availability_zone = @file_get_contents('http://169.254.169.254/latest/meta-data/placement/availability-zone', false, $context);
 
-// プライベートIPからAZを判断
-$az = 'Unknown';
-if ($private_ip) {
+if ($availability_zone) {
+    $az = $availability_zone;
+}
+
+// 方法2: システムコマンドから取得
+if (!$instance_id) {
+    $instance_id = @exec('hostname');
+}
+
+if (!$private_ip) {
+    $private_ip = @exec("hostname -I | awk '{print $1}'");
+}
+
+// 方法3: サーバー変数から取得
+if (!$private_ip) {
+    $private_ip = @$_SERVER['SERVER_ADDR'];
+}
+
+// IPアドレスからAZを判断
+if ($private_ip && $az == 'Unknown') {
     // VPC設計に基づいたマッピング
     if (preg_match('/^10\.0\.1\./', $private_ip)) {
         $az = 'ap-northeast-1a (Public)';
@@ -19,9 +42,25 @@ if ($private_ip) {
     }
 }
 
-// インスタンスIDが取得できない場合はホスト名を使用
-if (!$instance_id) {
-    $instance_id = @exec('hostname');
+// ホスト名からAZを推測（最終手段）
+if ($az == 'Unknown' && $instance_id) {
+    if (strpos($instance_id, 'ap-northeast-1a') !== false || 
+        strpos($instance_id, '1a') !== false) {
+        $az = 'ap-northeast-1a';
+    } elseif (strpos($instance_id, 'ap-northeast-1c') !== false || 
+              strpos($instance_id, '1c') !== false) {
+        $az = 'ap-northeast-1c';
+    }
+    
+    // インスタンスIDの最後の文字でAZを推測
+    if ($az == 'Unknown' && preg_match('/([a-z0-9])$/', $instance_id, $matches)) {
+        $last_char = $matches[1];
+        if (in_array($last_char, ['0', '2', '4', '6', '8', 'a', 'c', 'e'])) {
+            $az = 'ap-northeast-1a (推測)';
+        } else {
+            $az = 'ap-northeast-1c (推測)';
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
