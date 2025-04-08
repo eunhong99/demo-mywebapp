@@ -32,9 +32,9 @@ if (!$private_ip) {
 if ($private_ip && $az == 'Unknown') {
     // VPC設計に基づいたマッピング
     if (preg_match('/^10\.0\.1\./', $private_ip)) {
-        $az = 'ap-northeast-1a (Public)';
+        $az = 'ap-northeast-1a';
     } elseif (preg_match('/^10\.0\.2\./', $private_ip)) {
-        $az = 'ap-northeast-1c (Public)';
+        $az = 'ap-northeast-1c';
     } elseif (preg_match('/^10\.0\.3\./', $private_ip)) {
         $az = 'ap-northeast-1a (Private)';
     } elseif (preg_match('/^10\.0\.4\./', $private_ip)) {
