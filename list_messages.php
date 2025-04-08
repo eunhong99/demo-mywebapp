@@ -19,11 +19,19 @@ if ($result->num_rows > 0) {
         echo '<div class="message">';
         echo '<div class="message-header">';
         echo '<span class="name">' . htmlspecialchars($row["name"]) . '</span>';
-        echo '<span class="date">' . htmlspecialchars($row["created_at"]) . '</span>';
+        
+        // 日本時間に変換して表示
+        $date = new DateTime($row["created_at"]);
+        $date->setTimezone(new DateTimeZone('Asia/Tokyo'));
+        echo '<span class="date">' . $date->format('Y-m-d H:i:s') . ' (JST)</span>';
+        
         echo '</div>';
         echo '<div class="message-body">' . nl2br(htmlspecialchars($row["message"])) . '</div>';
-        echo '<div class="message-footer">';
-        echo '<a href="delete_message.php?id=' . $row["id"] . '" class="delete-btn" onclick="return confirm(\'このメッセージを削除してもよろしいですか？\');">削除</a>';
+        echo '<div class="message-actions">';
+        echo '<form action="delete_message.php" method="post" onsubmit="return confirm(\'このメッセージを削除してもよろしいですか？\');">';
+        echo '<input type="hidden" name="id" value="' . $row["id"] . '">';
+        echo '<button type="submit" class="delete-btn">削除</button>';
+        echo '</form>';
         echo '</div>';
         echo '</div>';
     }

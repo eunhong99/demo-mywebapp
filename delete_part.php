@@ -1,7 +1,7 @@
 <?php
 require_once 'config.php';
 
-// POSTメソッドで受け取るように変更
+// POSTメソッドで受け取る
 $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
 
 // IDが有効かチェック
@@ -26,7 +26,7 @@ if ($conn->connect_error) {
 }
 
 // SQLインジェクション対策
-$stmt = $conn->prepare("DELETE FROM messages WHERE id = ?");
+$stmt = $conn->prepare("DELETE FROM parts WHERE id = ?");
 $stmt->bind_param("i", $id);
 
 // 実行

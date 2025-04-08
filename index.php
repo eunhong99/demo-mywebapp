@@ -9,7 +9,7 @@ if (!$instance_id) {
     $instance_id = @exec('hostname');
 }
 if (!$availability_zone) {
-    // ホスト名からAZを推測（例：ip-10-0-1-100.ap-northeast-1.compute.internal）
+    // ホスト名からAZを推測
     $hostname = @exec('hostname -f');
     if (preg_match('/\.([a-z0-9\-]+)\./', $hostname, $matches)) {
         $availability_zone = $matches[1];
@@ -19,35 +19,50 @@ if (!$availability_zone) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>デモWebアプリケーション</title>
+    <title>部品管理システム</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>デモWebアプリケーション</h1>
+        <h1>部品管理システム</h1>
         
         <div class="form-container">
-            <h2>新しいメッセージを追加</h2>
-            <form action="add_message.php" method="post">
+            <h2>新しい部品を登録</h2>
+            <form action="add_part.php" method="post">
                 <div class="form-group">
-                    <label for="name">お名前:</label>
-                    <input type="text" id="name" name="name" required>
+                    <label for="part_number">在庫番号:</label>
+                    <input type="text" id="part_number" name="part_number" required>
                 </div>
                 <div class="form-group">
-                    <label for="message">メッセージ:</label>
-                    <textarea id="message" name="message" required></textarea>
+                    <label for="part_name">部品名:</label>
+                    <input type="text" id="part_name" name="part_name" required>
                 </div>
-                <button type="submit">送信</button>
+                <div class="form-group">
+                    <label for="quantity">数量:</label>
+                    <input type="number" id="quantity" name="quantity" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="date">日程:</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="person_in_charge">担当者:</label>
+                    <input type="text" id="person_in_charge" name="person_in_charge" required>
+                </div>
+                <div class="form-group">
+                    <label for="notes">備考:</label>
+                    <textarea id="notes" name="notes"></textarea>
+                </div>
+                <button type="submit">登録</button>
             </form>
         </div>
         
-        <div class="messages">
-            <h2>メッセージ一覧</h2>
-            <?php include 'list_messages.php'; ?>
+        <div class="parts-list">
+            <h2>部品一覧</h2>
+            <?php include 'list_parts.php'; ?>
         </div>
     </div>
     
-    <!-- サーバー情報を表示するためのコード -->
     <div class="server-info">
         <strong>サーバー情報:</strong><br>
         インスタンスID: <?php echo $instance_id ?: 'Unknown'; ?><br>
