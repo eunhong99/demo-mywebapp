@@ -2,18 +2,26 @@
 // EC2インスタンス情報を取得（タイムアウト設定を追加）
 $context = stream_context_create(['http' => ['timeout' => 1]]);
 $instance_id = @file_get_contents('http://169.254.169.254/latest/meta-data/instance-id', false, $context);
-$availability_zone = @file_get_contents('http://169.254.169.254/latest/meta-data/placement/availability-zone', false, $context);
+$private_ip = @file_get_contents('http://169.254.169.254/latest/meta-data/local-ipv4', false, $context);
 
-// 取得できない場合はシステム情報から取得を試みる
+// プライベートIPからAZを判断
+$az = 'Unknown';
+if ($private_ip) {
+    // VPC設計に基づいたマッピング
+    if (preg_match('/^10\.0\.1\./', $private_ip)) {
+        $az = 'ap-northeast-1a (Public)';
+    } elseif (preg_match('/^10\.0\.2\./', $private_ip)) {
+        $az = 'ap-northeast-1c (Public)';
+    } elseif (preg_match('/^10\.0\.3\./', $private_ip)) {
+        $az = 'ap-northeast-1a (Private)';
+    } elseif (preg_match('/^10\.0\.4\./', $private_ip)) {
+        $az = 'ap-northeast-1c (Private)';
+    }
+}
+
+// インスタンスIDが取得できない場合はホスト名を使用
 if (!$instance_id) {
     $instance_id = @exec('hostname');
-}
-if (!$availability_zone) {
-    // ホスト名からAZを推測
-    $hostname = @exec('hostname -f');
-    if (preg_match('/\.([a-z0-9\-]+)\./', $hostname, $matches)) {
-        $availability_zone = $matches[1];
-    }
 }
 ?>
 <!DOCTYPE html>
@@ -63,10 +71,13 @@ if (!$availability_zone) {
         </div>
     </div>
     
-    <div class="server-info">
-        <strong>サーバー情報:</strong><br>
-        インスタンスID: <?php echo $instance_id ?: 'Unknown'; ?><br>
-        AZ: <?php echo $availability_zone ?: 'Unknown'; ?>
-    </div>
+    <footer>
+        <div class="footer-container">
+            <strong>サーバー情報:</strong>
+            インスタンスID: <?php echo $instance_id ?: 'Unknown'; ?> |
+            プライベートIP: <?php echo $private_ip ?: 'Unknown'; ?> |
+            アベイラビリティゾーン: <?php echo $az; ?>
+        </div>
+    </footer>
 </body>
 </html>
