@@ -1,3 +1,8 @@
+<?php
+// EC2インスタンス情報を取得（ページの先頭に追加）
+$instance_id = @file_get_contents('http://169.254.169.254/latest/meta-data/instance-id');
+$availability_zone = @file_get_contents('http://169.254.169.254/latest/meta-data/placement/availability-zone');
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -27,6 +32,13 @@
             <h2>メッセージ一覧</h2>
             <?php include 'list_messages.php'; ?>
         </div>
+    </div>
+    
+    <!-- サーバー情報を表示するためのコード（ページの下部に追加） -->
+    <div style="position: fixed; bottom: 10px; right: 10px; background: #f8f9fa; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <strong>サーバー情報:</strong><br>
+        インスタンスID: <?php echo $instance_id ?: 'Unknown'; ?><br>
+        AZ: <?php echo $availability_zone ?: 'Unknown'; ?>
     </div>
 </body>
 </html>
