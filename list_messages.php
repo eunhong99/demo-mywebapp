@@ -20,10 +20,11 @@ if ($result->num_rows > 0) {
         echo '<div class="message-header">';
         echo '<span class="name">' . htmlspecialchars($row["name"]) . '</span>';
         echo '<span class="date">' . htmlspecialchars($row["created_at"]) . '</span>';
-        // 削除ボタンを追加
-        echo '<a href="delete_message.php?id=' . $row["id"] . '" class="delete-btn" onclick="return confirm(\'このメッセージを削除してもよろしいですか？\');">削除</a>';
         echo '</div>';
         echo '<div class="message-body">' . nl2br(htmlspecialchars($row["message"])) . '</div>';
+        echo '<div class="message-footer">';
+        echo '<a href="delete_message.php?id=' . $row["id"] . '" class="delete-btn" onclick="return confirm(\'このメッセージを削除してもよろしいですか？\');">削除</a>';
+        echo '</div>';
         echo '</div>';
     }
 } else {

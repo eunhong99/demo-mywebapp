@@ -1,17 +1,30 @@
 <?php
-// EC2インスタンス情報を取得（ページの先頭に追加）
-$instance_id = @file_get_contents('http://169.254.169.254/latest/meta-data/instance-id');
-$availability_zone = @file_get_contents('http://169.254.169.254/latest/meta-data/placement/availability-zone');
+// EC2インスタンス情報を取得（タイムアウト設定を追加）
+$context = stream_context_create(['http' => ['timeout' => 1]]);
+$instance_id = @file_get_contents('http://169.254.169.254/latest/meta-data/instance-id', false, $context);
+$availability_zone = @file_get_contents('http://169.254.169.254/latest/meta-data/placement/availability-zone', false, $context);
+
+// 取得できない場合はシステム情報から取得を試みる
+if (!$instance_id) {
+    $instance_id = @exec('hostname');
+}
+if (!$availability_zone) {
+    // ホスト名からAZを推測（例：ip-10-0-1-100.ap-northeast-1.compute.internal）
+    $hostname = @exec('hostname -f');
+    if (preg_match('/\.([a-z0-9\-]+)\./', $hostname, $matches)) {
+        $availability_zone = $matches[1];
+    }
+}
 ?>
 <!DOCTYPE html>
 <html>
 <head>
-    <title>シンプルWebアプリケーション</title>
+    <title>デモWebアプリケーション</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>シンプルWebアプリケーション</h1>
+        <h1>デモWebアプリケーション</h1>
         
         <div class="form-container">
             <h2>新しいメッセージを追加</h2>
@@ -34,8 +47,8 @@ $availability_zone = @file_get_contents('http://169.254.169.254/latest/meta-data
         </div>
     </div>
     
-    <!-- サーバー情報を表示するためのコード（ページの下部に追加） -->
-    <div style="position: fixed; bottom: 10px; right: 10px; background: #f8f9fa; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <!-- サーバー情報を表示するためのコード -->
+    <div class="server-info">
         <strong>サーバー情報:</strong><br>
         インスタンスID: <?php echo $instance_id ?: 'Unknown'; ?><br>
         AZ: <?php echo $availability_zone ?: 'Unknown'; ?>
